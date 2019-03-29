@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
-	"strings"
 
 	"lucas/crawl"
 	"lucas/validate"
@@ -26,10 +26,7 @@ func main() {
 		log.Fatalf("Failed to download page: %s", err.Error())
 	}
 
-	for _, l := range strings.Split(page, "\n") {
-		u, ok := crawl.ExtractURL(l)
-		if ok {
-			println(u)
-		}
+	for u, c := range crawl.ExtractURLS(page) {
+		fmt.Printf("%s %d\n", u, c)
 	}
 }

@@ -26,21 +26,34 @@ func Download(address string) (string, error) {
 	return string(html), nil
 }
 
-// ExtractURL attemps to extract a find a url tag and extract the address
-func ExtractURL(line string) (string, bool) {
-	startIndex := strings.Index(line, "a href=\"") + 8
+// extractURL attemps to extract a find a url tag and extract the address
+func extractURL(line string) (string, bool) {
+	startIndex := strings.Index(strings.ToLower(line), "href=\"")
 	if startIndex == -1 {
 		return "", false
 	}
 
-	endIndex := strings.LastIndex(line, "\">")
+	trimmedPrefix := line[startIndex+6:]
+
+	endIndex := strings.Index(trimmedPrefix, "\"")
 	if endIndex == -1 {
 		return "", false
 	}
 
-	result := line[startIndex:endIndex]
+	result := trimmedPrefix[:endIndex]
 	if result == "" {
 		return "", false
 	}
 	return result, true
+}
+
+func ExtractURLS(page string) map[string]int {
+	addresses := make(map[string]int)
+	for _, l := range strings.Split(page, "\n") {
+		u, extracted := extractURL(l)
+		if extracted {
+			addresses[u] = addresses[u] + 1
+		}
+	}
+	return addresses
 }
