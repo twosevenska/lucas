@@ -2,7 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
+	"strings"
 
 	"lucas/crawl"
 	"lucas/validate"
@@ -12,15 +13,23 @@ func main() {
 	flag.Parse()
 	args := flag.Args()
 	if len(args) != 1 {
-		fmt.Println("Please provide a single url value.")
-		return
+		log.Fatal("Please provide a single url value.")
 	}
 
 	address := args[0]
 	if !validate.URLAddress(address) {
-		fmt.Println("Please provide a valid url value.")
-		return
+		log.Fatal("Please provide a valid url value.")
 	}
 
-	fmt.Println(crawl.Download(address))
+	page, err := crawl.Download(address)
+	if err != nil {
+		log.Fatalf("Failed to download page: %s", err.Error())
+	}
+
+	for _, l := range strings.Split(page, "\n") {
+		u, ok := crawl.ExtractURL(l)
+		if ok {
+			println(u)
+		}
+	}
 }
