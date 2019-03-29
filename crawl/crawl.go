@@ -57,14 +57,23 @@ func ExtractURLS(page string) map[string]int {
 	done := make(chan bool)
 	defer close(done)
 
-	addresses := make(map[string]int)
+	go func() {
+		for _, l := range strings.Split(page, "\n") {
+			lines <- l
+		}
+		done <- true
+	}()
+
+	urls := make(chan string)
+	defer close(urls)
+
 	go func() {
 		for {
 			select {
 			case l := <-lines:
 				u, extracted := extractURL(l)
 				if extracted {
-					addresses[u] = addresses[u] + 1
+					urls <- u
 				}
 			case d := <-done:
 				if d {
@@ -74,10 +83,15 @@ func ExtractURLS(page string) map[string]int {
 		}
 	}()
 
-	for _, l := range strings.Split(page, "\n") {
-		lines <- l
+	addresses := make(map[string]int)
+	for {
+		select {
+		case u := <-urls:
+			addresses[u] += 1
+		case d := <-done:
+			if d {
+				return addresses
+			}
+		}
 	}
-	done <- true
-
-	return addresses
 }
