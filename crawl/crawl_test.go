@@ -93,7 +93,7 @@ func TestExtractURLS(t *testing.T) {
 		"http://home.web.cern.ch/about":                              3,
 	}
 
-	result := ExtractURLS(testCase)
+	result := ExtractURLS(testCase, 2)
 
 	for u, c := range expected {
 		if len(result) != len(expected) {

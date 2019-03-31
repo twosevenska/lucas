@@ -28,7 +28,47 @@ func Download(address string) (string, error) {
 	return string(html), nil
 }
 
-// extractURL attemps to extract a find a url tag and extract the address
+// ExtractURLS finds and extracts urls in a page from hyperlink tags
+func ExtractURLS(page string, step int) map[string]int {
+
+	lines := strings.Split(page, "\n")
+	var chunks [][]string
+	for step < len(lines) {
+		lines, chunks = lines[step:], append(chunks, lines[0:step:step])
+	}
+	chunks = append(chunks, lines)
+
+	urls := make(chan string, len(chunks))
+	done := make(chan bool, len(chunks))
+	for _, c := range chunks {
+		go extractFromSection(c, urls, done)
+	}
+
+	addresses := make(map[string]int)
+	for dc := 0; dc < len(chunks); {
+		select {
+		case u := <-urls:
+			addresses[u] += 1
+		case <-done:
+			dc += 1
+		default:
+		}
+	}
+	return addresses
+}
+
+// extractFromSection goes through a section and tries to find any urls
+func extractFromSection(chunk []string, urls chan<- string, done chan<- bool) {
+	for _, l := range chunk {
+		u, extracted := extractURL(l)
+		if extracted {
+			urls <- u
+		}
+	}
+	done <- true
+}
+
+// extractURL attemps to find a url tag in a line and extract the address
 func extractURL(line string) (string, bool) {
 	startIndex := strings.Index(strings.ToLower(line), "href=\"")
 	if startIndex == -1 {
@@ -47,51 +87,4 @@ func extractURL(line string) (string, bool) {
 		return "", false
 	}
 	return result, true
-}
-
-// ExtractURLS finds and extracts urls in page from hyperlink tags
-func ExtractURLS(page string) map[string]int {
-	lines := make(chan string)
-	defer close(lines)
-
-	done := make(chan bool)
-	defer close(done)
-
-	go func() {
-		for _, l := range strings.Split(page, "\n") {
-			lines <- l
-		}
-		done <- true
-	}()
-
-	urls := make(chan string)
-	defer close(urls)
-
-	go func() {
-		for {
-			select {
-			case l := <-lines:
-				u, extracted := extractURL(l)
-				if extracted {
-					urls <- u
-				}
-			case d := <-done:
-				if d {
-					return
-				}
-			}
-		}
-	}()
-
-	addresses := make(map[string]int)
-	for {
-		select {
-		case u := <-urls:
-			addresses[u] += 1
-		case d := <-done:
-			if d {
-				return addresses
-			}
-		}
-	}
 }

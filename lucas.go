@@ -12,8 +12,8 @@ import (
 func main() {
 	flag.Parse()
 	args := flag.Args()
-	if len(args) != 1 {
-		log.Fatal("Please provide a single url value.")
+	if len(args) == 0 {
+		log.Fatal("Please provide a url value.")
 	}
 
 	address := args[0]
@@ -26,7 +26,9 @@ func main() {
 		log.Fatalf("Failed to download page: %s", err.Error())
 	}
 
-	for u, c := range crawl.ExtractURLS(page) {
+	step := flag.Int("step", 10, "Size of chunks to split from the page")
+
+	for u, c := range crawl.ExtractURLS(page, *step) {
 		fmt.Printf("%s %d\n", u, c)
 	}
 }
