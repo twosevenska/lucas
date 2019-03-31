@@ -26,9 +26,9 @@ func main() {
 		log.Fatalf("Failed to download page: %s", err.Error())
 	}
 
-	step := flag.Int("step", 10, "Size of chunks to split from the page")
+	nLines := flag.Int("lines", 10, "Size of chunks to split from the page")
 
-	for u, c := range crawl.ExtractURLS(page, *step) {
+	for u, c := range crawl.ExtractURLS(page, *nLines) {
 		fmt.Printf("%s %d\n", u, c)
 	}
 }

@@ -24,6 +24,10 @@ https://cooperpress.com/ 1
 /latest 1
 ```
 
+### Advanced
+
+One can also provide an optional `lines` (default:10) argument to control how many lines each chunk will have to be processed by a worker.
+
 ## How to build
 
 One can run `make bin` to generate usable binaries for different systems.
