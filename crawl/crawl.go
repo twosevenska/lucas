@@ -45,16 +45,21 @@ func ExtractURLS(page string, step int) map[string]int {
 	}
 
 	addresses := make(map[string]int)
-	for dc := 0; dc < len(chunks); {
+	dc := 0
+	for {
 		select {
-		case u := <-urls:
+		case u, more := <-urls:
+			if !more {
+				return addresses
+			}
 			addresses[u] += 1
 		case <-done:
 			dc += 1
-		default:
+			if dc == len(chunks) {
+				close(urls)
+			}
 		}
 	}
-	return addresses
 }
 
 // extractFromSection goes through a section and tries to find any urls
