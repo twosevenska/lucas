@@ -6,7 +6,7 @@ Lucas is a friendly spider/web crawler made in go. It's still quite young so it 
 
 ## How to run
 
-This program runs from the terminal and expects a url as an argument.
+This program runs from the terminal and expects a url as an argument. The output will result in a newline separated list of urls and a counter of how many times that entry is repeated.
 
 ### Example
 
